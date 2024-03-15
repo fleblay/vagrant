@@ -1,41 +1,42 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
+script_apt_upgrade = <<-'SCRIPT'
+    apt-get update && apt-get upgrade -y
+SCRIPT
+script_apt_curl = <<-'SCRIPT'
+    apt-get install -y curl
+SCRIPT
+script_k3s_master = <<-'SCRIPT'
+      curl -sfL https://get.k3s.io | sh -
+SCRIPT
+
+scripts_master = [script_apt_upgrade, script_apt_curl, script_k3s_master]
+scripts_worker = [script_apt_upgrade, script_apt_curl]
+
+master = { cpu: 2, memory: 1024, name: 'fleblayS', ip: '192.168.42.110', scripts: scripts_master }
+worker = { cpu: 1, memory: 512, name: 'fleblaySW', ip: '192.168.42.111', scripts: scripts_worker }
+
+machines = [master, worker]
+
 Vagrant.configure('2') do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
-
-  # Every Vagrant development environment requires a box. You can search for
-  # boxes at https://vagrantcloud.com/search.
-  %w[fleblayS fleblaySW].each_with_index do |server_name, index|
+  machines.each do |machine|
     config.vm.box = 'debian/bookworm64'
-
-    config.vm.define server_name.to_s do |server|
+    config.vm.define machine[:name].to_s do |server|
       server.vm.provider 'virtualbox' do |vb|
-        vb.cpus = '1'
-        vb.memory = '512'
-        vb.name = server_name.to_s
+        vb.cpus = machine[:cpu]
+        vb.memory = machine[:memory]
+        vb.name = machine[:name]
       end
       server.vm.synced_folder '.', '/vagrant', disabled: true
-      address = 41 + index
-      port = 8080 + index
-      server.vm.network 'private_network', ip: "192.168.42.#{address}"
-      server.vm.network 'forwarded_port', guest: 80, host: port
-      server.vm.hostname = server_name.to_s
+      server.vm.network 'private_network', ip: machine[:ip]
+      # port = 8080 + index
+      # server.vm.network 'forwarded_port', guest: 80, host: port
+      server.vm.hostname = machine[:name]
 
-      $script = <<-'SCRIPT'
-    echo "Provisioning fleblayS"
-    apt-get upgrade
-    apt-get update -y
-    apt-get install curl nginx -y
-      SCRIPT
-
-      server.vm.provision 'shell', inline: $script
+      machine[:scripts].each do |script|
+        server.vm.provision 'shell', inline: script
+      end
     end
   end
 
