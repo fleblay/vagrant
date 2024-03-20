@@ -1,0 +1,29 @@
+- name: Add hosts of inventory file to known hosts
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    known_host_file: "{{ lookup('env', 'HOME') + '/.ssh/known_hosts' }}"
+    hosts_to_add: "{{ groups['all'] }}"
+
+  tasks:
+    - name: Scan ssh public key of hosts
+      ansible.builtin.shell: "ssh-keyscan {{item}}"
+      register: ssh_scan_keys
+      with_items: "{{ hosts_to_add }}"
+      ignore_errors : yes
+
+    - name: Add public key of hosts to know_hosts file
+      ansible.builtin.known_hosts:
+        name: "{{ item.item }}"
+        key: "{{item.stdout}}"
+        path: "{{known_host_file}}"
+      with_items: "{{ ssh_scan_keys.results }}"
+
+    - name: Debug
+      ansible.builtin.debug:
+        msg:
+        - "known_host_file: {{ known_host_file }}"
+        - "hosts_to_add: {{ hosts_to_add }}"
+        - "ssh_scan_keys: {{ ssh_scan_keys }}"
+      tags: [ 'never', 'debug' ]

@@ -1,0 +1,21 @@
+#ansible-galaxy collection install ansible.posix -> for ssh
+- name: Setup of nodes
+  hosts: all
+  gather_facts: true
+  become: true
+  vars:
+
+  pre_tasks:
+    - name: Update cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Upgrade packages
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+
+    - name: Install curl
+      ansible.builtin.apt:
+        name: curl
+        state: latest

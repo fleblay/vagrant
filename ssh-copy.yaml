@@ -1,0 +1,17 @@
+- name: Add public ssh key of host to remotes
+  hosts: all
+  gather_facts: true
+  vars:
+    public_key: "{{ lookup('ansible.builtin.fileglob', lookup('env', 'HOME') + '/.ssh/*.pub') }}"
+
+  tasks:
+  - name: Add public ssh key from current user on host to vagrant user on remote
+    ansible.posix.authorized_key:
+      user: vagrant
+      key: "{{ lookup('file', public_key) }}"
+
+  - name: Debug
+    ansible.builtin.debug:
+      msg:
+      - "public_key: {{ public_key }}"
+    tags: [ 'never', 'debug' ]

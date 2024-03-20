@@ -1,21 +1,23 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-script_apt_upgrade = <<-'SCRIPT'
-    apt-get update && apt-get upgrade -y
-SCRIPT
-script_apt_curl = <<-'SCRIPT'
-    apt-get install -y curl
-SCRIPT
-script_k3s_master = <<-'SCRIPT'
-      curl -sfL https://get.k3s.io | sh -
-SCRIPT
+# script_apt_upgrade = <<-'SCRIPT'
+#     apt-get update && apt-get upgrade -y
+# SCRIPT
+# script_apt_curl = <<-'SCRIPT'
+#     apt-get install -y curl
+# SCRIPT
+# script_k3s_master = <<-'SCRIPT'
+#       curl -sfL https://get.k3s.io | sh -
+# SCRIPT
+#
+# scripts_master = [script_apt_upgrade, script_apt_curl, script_k3s_master]
+# scripts_worker = [script_apt_upgrade, script_apt_curl]
+scripts_master = []
+scripts_worker = []
 
-scripts_master = [script_apt_upgrade, script_apt_curl, script_k3s_master]
-scripts_worker = [script_apt_upgrade, script_apt_curl]
-
-master = { cpu: 2, memory: 1024, name: 'fleblayS', ip: '192.168.42.110', scripts: scripts_master }
-worker = { cpu: 1, memory: 512, name: 'fleblaySW', ip: '192.168.42.111', scripts: scripts_worker }
+master = { cpu: 2, memory: 1024, name: 'fleblayS', ip: '192.168.42.110', port: 8080, scripts: scripts_master }
+worker = { cpu: 2, memory: 1024, name: 'fleblaySW', ip: '192.168.42.111', port: 8081, scripts: scripts_worker }
 
 machines = [master, worker]
 
@@ -30,12 +32,22 @@ Vagrant.configure('2') do |config|
       end
       server.vm.synced_folder '.', '/vagrant', disabled: true
       server.vm.network 'private_network', ip: machine[:ip]
-      # port = 8080 + index
-      # server.vm.network 'forwarded_port', guest: 80, host: port
+      # For testing purposes
+      server.vm.network 'forwarded_port', guest: 80, host: machine[:port]
       server.vm.hostname = machine[:name]
 
       machine[:scripts].each do |script|
         server.vm.provision 'shell', inline: script
+      end
+      server.vm.provision 'ansible' do |ansible|
+        ansible.playbook = 'known_hosts.yaml'
+        ansible.host_key_checking = false
+      end
+      server.vm.provision 'ansible' do |ansible|
+        ansible.playbook = 'ssh-copy.yaml'
+      end
+      server.vm.provision 'ansible' do |ansible|
+        ansible.playbook = 'provision.yaml'
       end
     end
   end
