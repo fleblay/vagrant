@@ -19,3 +19,8 @@
       ansible.builtin.apt:
         name: curl
         state: latest
+
+    - name: Install htop
+      ansible.builtin.apt:
+        name: htop
+        state: latest

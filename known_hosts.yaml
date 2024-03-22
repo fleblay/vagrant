@@ -8,17 +8,27 @@
 
   tasks:
     - name: Scan ssh public key of hosts
-      ansible.builtin.shell: "ssh-keyscan {{item}}"
+      ansible.builtin.shell: "ssh-keyscan {{item}} `dig {{item}} +short`"
       register: ssh_scan_keys
       with_items: "{{ hosts_to_add }}"
       ignore_errors : yes
+
+    - name: Remove public key of previous create hosts to know_hosts file
+      ansible.builtin.known_hosts:
+        name: "{{ item.item }}"
+        path: "{{known_host_file}}"
+        state: absent
+      with_items: "{{ ssh_scan_keys.results }}"
+      when: ssh_scan_keys.results | length > 0
 
     - name: Add public key of hosts to know_hosts file
       ansible.builtin.known_hosts:
         name: "{{ item.item }}"
         key: "{{item.stdout}}"
         path: "{{known_host_file}}"
+        state: present
       with_items: "{{ ssh_scan_keys.results }}"
+      when: ssh_scan_keys.results | length > 0
 
     - name: Debug
       ansible.builtin.debug:

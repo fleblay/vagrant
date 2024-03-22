@@ -32,24 +32,39 @@ Vagrant.configure('2') do |config|
       end
       server.vm.synced_folder '.', '/vagrant', disabled: true
       server.vm.network 'private_network', ip: machine[:ip]
-      # For testing purposes
-      server.vm.network 'forwarded_port', guest: 80, host: machine[:port]
+      # server.vm.network 'forwarded_port', guest: 80, host: machine[:port]
       server.vm.hostname = machine[:name]
 
       machine[:scripts].each do |script|
         server.vm.provision 'shell', inline: script
       end
       server.vm.provision 'ansible' do |ansible|
-        ansible.playbook = 'known_hosts.yaml'
-        ansible.host_key_checking = false
-      end
-      server.vm.provision 'ansible' do |ansible|
-        ansible.playbook = 'ssh-copy.yaml'
-      end
-      server.vm.provision 'ansible' do |ansible|
-        ansible.playbook = 'provision.yaml'
+        ansible.limit = 'all'
+        ansible.compatibility_mode = '2.0'
+        ansible.playbook = 'main_playbook.yaml'
       end
     end
+  end
+
+  # create ansible inventory file
+  ansible_inventory_dir = 'ansible/'
+  Dir.mkdir(ansible_inventory_dir) unless Dir.exist?(ansible_inventory_dir)
+  File.open("#{ansible_inventory_dir}/inventory.ini", 'w') do |f|
+    f.write "[all:vars]\n"
+    f.write "master_node_ip=#{master[:ip]}\n"
+    f.write "ansible_user=vagrant\n"
+    f.write "[master]\n"
+    f.write "#{master[:ip]}\n"
+    f.write "[worker]\n"
+    f.write "#{worker[:ip]}\n"
+  end
+
+  config.push.define 'local-exec' do |push|
+    push.inline = <<-SCRIPT
+    ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ansible/inventory.ini known_hosts.yaml
+    ansible-playbook -i ansible/inventory.ini master.yaml
+    ansible-playbook -i ansible/inventory.ini worker.yaml
+    SCRIPT
   end
 
   # Disable automatic box update checking. If you disable this, then

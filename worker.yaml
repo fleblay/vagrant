@@ -1,0 +1,28 @@
+- name: Setup worker node
+  hosts: worker
+  gather_facts: true
+  become: true
+  vars:
+
+  tasks:
+    - name: Gather services facts
+      ansible.builtin.service_facts:
+
+    - name: Slurp token into register
+      ansible.builtin.slurp:
+        src: /tmp/node-token
+      register: node_token
+      delegate_to: localhost
+      become: false
+      #run_once if multiple workers
+      run_once: true
+
+    - name: Debug print of cmd
+      ansible.builtin.debug:
+        msg: curl -sfL https://get.k3s.io | K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -
+
+    - name: Install k3s agent
+      become: false
+      ansible.builtin.shell:
+        cmd: curl -sfL https://get.k3s.io | K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -
+      when: services['k3s-agent.service'] is not defined
