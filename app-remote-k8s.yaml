@@ -1,0 +1,28 @@
+- name: Deploy app
+  hosts: master
+  gather_facts: true
+  become: false
+  environment:
+    K8S_AUTH_KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
+
+  tasks:
+    - name: Copy k8s service yaml file
+      ansible.builtin.copy:
+        src: service-definition.yaml
+        dest: /tmp/service-definition.yaml
+
+    - name: Copy k8s service deployment file
+      ansible.builtin.copy:
+        src: deployment.yaml
+        dest: /tmp/deployment.yaml
+
+    - name: Create a NodePort for nginx app
+      kubernetes.core.k8s:
+        state: present
+        src: /tmp/service-definition.yaml
+
+    - name: Create a Deployment with nginx
+      kubernetes.core.k8s:
+        state: present
+        src: /tmp/deployment.yaml
+

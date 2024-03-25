@@ -1,0 +1,17 @@
+- name: Deploy app
+  hosts: localhost
+  gather_facts: true
+  become: false
+  environment:
+    K8S_AUTH_KUBECONFIG: "/tmp/k3s.yaml"
+
+  tasks:
+    - name: Create a NodePort for nginx app
+      kubernetes.core.k8s:
+        state: present
+        src: /tmp/service-definition.yaml
+
+    - name: Create a Deployment with nginx
+      kubernetes.core.k8s:
+        state: present
+        src: /tmp/deployment.yaml

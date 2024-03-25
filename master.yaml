@@ -3,6 +3,7 @@
   gather_facts: true
   become: true
   vars:
+    user: "{{ lookup('env','USER') }}"
 
   tasks:
     - name: Gather services facts
@@ -33,3 +34,17 @@
         src: /var/lib/rancher/k3s/server/node-token
         dest: /tmp/node-token
         flat: true
+
+    - name: Fetch kubeconfig on host
+      ansible.builtin.fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /tmp/k3s.yaml
+        flat: true
+
+    - name: Change IP of kubeconfig from 127.0.0.1 to {{master_node_ip}}
+      ansible.builtin.lineinfile:
+        path: /tmp/k3s.yaml
+        regex: "^    server: https://127.0.0.1:6443"
+        line: "    server: https://{{ master_node_ip }}:6443"
+      delegate_to: localhost
+      become: false

@@ -16,8 +16,17 @@
 scripts_master = []
 scripts_worker = []
 
-master = { cpu: 2, memory: 1024, name: 'fleblayS', ip: '192.168.42.110', port: 8080, scripts: scripts_master }
-worker = { cpu: 2, memory: 1024, name: 'fleblaySW', ip: '192.168.42.111', port: 8081, scripts: scripts_worker }
+port_map_master = [
+  { host_port: 6443, guest_port: 6443 }
+]
+port_map_worker = [
+  { host_port: 8081, guest_port: 30_080 }
+]
+
+master = { cpu: 2, memory: 1024, name: 'fleblayS', ip: '192.168.42.110', port_map: port_map_master,
+           scripts: scripts_master }
+worker = { cpu: 2, memory: 1024, name: 'fleblaySW', ip: '192.168.42.111', port_map: port_map_worker,
+           scripts: scripts_worker }
 
 machines = [master, worker]
 
@@ -32,7 +41,10 @@ Vagrant.configure('2') do |config|
       end
       server.vm.synced_folder '.', '/vagrant', disabled: true
       server.vm.network 'private_network', ip: machine[:ip]
-      # server.vm.network 'forwarded_port', guest: 80, host: machine[:port]
+      machine[:port_map].each do |entry|
+        server.vm.network 'forwarded_port', guest: entry[:guest_port], host: entry[:host_port]
+      end
+      # server.vm.network 'forwarded_port', guest: machine[:guest_port], host: machine[:host_port]
       server.vm.hostname = machine[:name]
 
       machine[:scripts].each do |script|
@@ -64,6 +76,7 @@ Vagrant.configure('2') do |config|
     ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ansible/inventory.ini known_hosts.yaml
     ansible-playbook -i ansible/inventory.ini master.yaml
     ansible-playbook -i ansible/inventory.ini worker.yaml
+    ansible-playbook -i ansible/inventory.ini app-remote-k8s.yaml
     SCRIPT
   end
 

@@ -8,7 +8,7 @@
   pre_tasks:
     - name: Update cache
       ansible.builtin.apt:
-        update_cache: yes
+        update_cache: true
 
     - name: Upgrade packages
       ansible.builtin.apt:
@@ -23,4 +23,19 @@
     - name: Install htop
       ansible.builtin.apt:
         name: htop
+        state: latest
+
+    - name: K8s ansible remote dependency - Install python3
+      ansible.builtin.apt:
+        name: python3
+        state: latest
+
+    - name: K8s ansible remote dependency - Install python3-yaml
+      ansible.builtin.apt:
+        name: python3-yaml
+        state: latest
+
+    - name: K8s ansible remote dependency - Install python3-kubernetes
+      ansible.builtin.apt:
+        name: python3-kubernetes
         state: latest
