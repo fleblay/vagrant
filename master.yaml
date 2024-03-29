@@ -4,6 +4,7 @@
   become: true
   vars:
     user: "{{ lookup('env','USER') }}"
+    kubeconfig_file: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
 
   tasks:
     - name: Gather services facts
@@ -38,12 +39,12 @@
     - name: Fetch kubeconfig on host
       ansible.builtin.fetch:
         src: /etc/rancher/k3s/k3s.yaml
-        dest: /tmp/k3s.yaml
+        dest: "{{ kubeconfig_file }}"
         flat: true
 
     - name: Change IP of kubeconfig from 127.0.0.1 to {{master_node_ip}}
       ansible.builtin.lineinfile:
-        path: /tmp/k3s.yaml
+        path: "{{ kubeconfig_file }}"
         regex: "^    server: https://127.0.0.1:6443"
         line: "    server: https://{{ master_node_ip }}:6443"
       delegate_to: localhost

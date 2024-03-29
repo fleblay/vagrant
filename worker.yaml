@@ -26,3 +26,21 @@
       ansible.builtin.shell:
         cmd: curl -sfL https://get.k3s.io | K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -
       when: services['k3s-agent.service'] is not defined
+
+    - name: Check if kubelet file exists
+      ansible.builtin.stat:
+        path: "/etc/default/kubelet"
+      register: kubelet_file
+
+    - name: Create kubelet custom file
+      ansible.builtin.copy:
+        dest: "/etc/default/kubelet"
+        content: |
+          KUBELET_EXTRA_ARGS=--node-ip={{ansible_eth1['ipv4']['address']}}
+      when: 
+        - kubelet_file.stat.exists == False
+
+    - name: restart k3s-agent
+      ansible.builtin.systemd_service:
+        state: restarted
+        name: k3s-agent

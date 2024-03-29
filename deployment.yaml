@@ -19,3 +19,11 @@ spec:
       containers:
         - name: nginx
           image: nginx
+          volumeMounts:
+            - name: vol-app-1
+              mountPath: "/usr/share/nginx/html"
+              readOnly: true
+      volumes:
+        - name: vol-app-1
+          configMap:
+            name: cm-app-1

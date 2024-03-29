@@ -30,6 +30,9 @@ worker = { cpu: 2, memory: 1024, name: 'fleblaySW', ip: '192.168.42.111', port_m
 
 machines = [master, worker]
 
+# TODO: remove key generation
+# TODO: ansible from localhost with kubeconfig file
+
 Vagrant.configure('2') do |config|
   machines.each do |machine|
     config.vm.box = 'debian/bookworm64'
@@ -76,7 +79,8 @@ Vagrant.configure('2') do |config|
     ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ansible/inventory.ini known_hosts.yaml
     ansible-playbook -i ansible/inventory.ini master.yaml
     ansible-playbook -i ansible/inventory.ini worker.yaml
-    ansible-playbook -i ansible/inventory.ini app-remote-k8s.yaml
+    #ansible-playbook -i ansible/inventory.ini app-remote-k8s.yaml
+    ansible-playbook -i ansible/inventory.ini app-local-k8s.yaml
     SCRIPT
   end
 

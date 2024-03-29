@@ -3,15 +3,38 @@
   gather_facts: true
   become: false
   environment:
-    K8S_AUTH_KUBECONFIG: "/tmp/k3s.yaml"
+    K8S_AUTH_KUBECONFIG: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
 
   tasks:
-    - name: Create a NodePort for nginx app
-      kubernetes.core.k8s:
-        state: present
-        src: /tmp/service-definition.yaml
+    - name: Slurp app1.html
+      ansible.builtin.slurp:
+        src: "app1.html"
+      register: app1
 
-    - name: Create a Deployment with nginx
+    - name: Create the configmap for app1.html from slurp
       kubernetes.core.k8s:
         state: present
-        src: /tmp/deployment.yaml
+        namespace: default
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: cm-app-1
+          data:
+            index.html: "{{ app1.content | b64decode }}"
+
+
+    - name: Create a ClusterIP for nginx app
+      kubernetes.core.k8s:
+        state: present
+        src: service-definition.yaml
+
+    - name: Create a Deployment for nginx app
+      kubernetes.core.k8s:
+        state: present
+        src: deployment.yaml
+
+    - name: Create a Ingress for nginx app
+      kubernetes.core.k8s:
+        state: present
+        src: ingress.yaml
