@@ -8,7 +8,7 @@
   tasks:
     - name: Slurp app1.html
       ansible.builtin.slurp:
-        src: "app1.html"
+        src: "k8s/app1/index.html"
       register: app1
 
     - name: Create the configmap for app1.html from slurp
@@ -23,18 +23,17 @@
           data:
             index.html: "{{ app1.content | b64decode }}"
 
-
     - name: Create a ClusterIP for nginx app
       kubernetes.core.k8s:
         state: present
-        src: service-definition.yaml
+        src: k8s/app1/service.yaml
 
     - name: Create a Deployment for nginx app
       kubernetes.core.k8s:
         state: present
-        src: deployment.yaml
+        src: k8s/app1/deployment.yaml
 
     - name: Create a Ingress for nginx app
       kubernetes.core.k8s:
         state: present
-        src: ingress.yaml
+        src: k8s/ingress.yaml

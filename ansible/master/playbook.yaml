@@ -42,6 +42,7 @@
         dest: "{{ kubeconfig_file }}"
         flat: true
 
+    # Might be removed -> useless
     - name: Change IP of kubeconfig from 127.0.0.1 to {{master_node_ip}}
       ansible.builtin.lineinfile:
         path: "{{ kubeconfig_file }}"
@@ -49,3 +50,40 @@
         line: "    server: https://{{ master_node_ip }}:6443"
       delegate_to: localhost
       become: false
+
+    - name: Check if traefik-config file exists
+      ansible.builtin.stat:
+        path: "/var/lib/rancher/k3s/server/manifests/traefik-config.yaml"
+      register: traefik_config_file
+
+    - name: Create traefik-config custom file
+      ansible.builtin.copy:
+        dest: "/var/lib/rancher/k3s/server/manifests/traefik-config.yaml"
+        content: |
+          apiVersion: helm.cattle.io/v1
+          kind: HelmChartConfig
+          metadata:
+            name: traefik
+            namespace: kube-system
+          spec:
+            valuesContent: |-
+              additionalArguments:
+                - "--api"
+                - "--api.dashboard=true"
+                - "--api.insecure=true"
+              ports:
+                traefik:
+                  expose: true
+              image:
+                name: traefik
+                tag: 2.9.10
+              serversTransport:
+                maxIdleConnsPerHost: -1
+              accessLog: {}
+      # when: 
+      #   - traefik_config_file.stat.exists == False
+
+    - name: restart k3s
+      ansible.builtin.systemd_service:
+        state: restarted
+        name: k3s

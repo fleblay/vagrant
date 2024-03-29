@@ -17,10 +17,10 @@ scripts_master = []
 scripts_worker = []
 
 port_map_master = [
-  { host_port: 6443, guest_port: 6443 }
+  # { host_port: 6443, guest_port: 6443 } # (useless with kubeconfig)
 ]
 port_map_worker = [
-  { host_port: 8081, guest_port: 30_080 }
+  { host_port: 9000, guest_port: 9000 } # traefik dashboard
 ]
 
 master = { cpu: 2, memory: 1024, name: 'fleblayS', ip: '192.168.42.110', port_map: port_map_master,
@@ -47,7 +47,6 @@ Vagrant.configure('2') do |config|
       machine[:port_map].each do |entry|
         server.vm.network 'forwarded_port', guest: entry[:guest_port], host: entry[:host_port]
       end
-      # server.vm.network 'forwarded_port', guest: machine[:guest_port], host: machine[:host_port]
       server.vm.hostname = machine[:name]
 
       machine[:scripts].each do |script|
@@ -56,7 +55,7 @@ Vagrant.configure('2') do |config|
       server.vm.provision 'ansible' do |ansible|
         ansible.limit = 'all'
         ansible.compatibility_mode = '2.0'
-        ansible.playbook = 'main_playbook.yaml'
+        ansible.playbook = 'ansible/common/playbook.yaml'
       end
     end
   end
@@ -76,11 +75,10 @@ Vagrant.configure('2') do |config|
 
   config.push.define 'local-exec' do |push|
     push.inline = <<-SCRIPT
-    ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ansible/inventory.ini known_hosts.yaml
-    ansible-playbook -i ansible/inventory.ini master.yaml
-    ansible-playbook -i ansible/inventory.ini worker.yaml
-    #ansible-playbook -i ansible/inventory.ini app-remote-k8s.yaml
-    ansible-playbook -i ansible/inventory.ini app-local-k8s.yaml
+    ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ansible/inventory.ini ansible/local/known_hosts.yaml
+    ansible-playbook -i ansible/inventory.ini ansible/master/playbook.yaml
+    ansible-playbook -i ansible/inventory.ini ansible/worker/playbook.yaml
+    ansible-playbook -i ansible/inventory.ini ansible/local/app-local-k8s.yaml
     SCRIPT
   end
 
