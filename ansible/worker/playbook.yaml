@@ -5,18 +5,18 @@
   vars:
 
   tasks:
-    - name: Check if kubelet file exists
-      ansible.builtin.stat:
-        path: "/etc/default/kubelet"
-      register: kubelet_file
-
-    - name: Create kubelet custom file
-      ansible.builtin.copy:
-        dest: "/etc/default/kubelet"
-        content: |
-          KUBELET_EXTRA_ARGS=--node-ip={{ansible_eth1['ipv4']['address']}}
-      when: 
-        - kubelet_file.stat.exists == False
+    # - name: Check if kubelet file exists
+    #   ansible.builtin.stat:
+    #     path: "/etc/default/kubelet"
+    #   register: kubelet_file
+    #
+    # - name: Create kubelet custom file
+    #   ansible.builtin.copy:
+    #     dest: "/etc/default/kubelet"
+    #     content: |
+    #       KUBELET_EXTRA_ARGS=--node-ip={{ansible_eth1['ipv4']['address']}}
+    #   when: 
+    #     - kubelet_file.stat.exists == False
 
     - name: Gather services facts
       ansible.builtin.service_facts:
@@ -32,12 +32,12 @@
 
     - name: Debug print of cmd
       ansible.builtin.debug:
-        msg: curl -sfL https://get.k3s.io | K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -
+        msg: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip {{ansible_eth1['ipv4']['address']}}\" K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -"
 
     - name: Install k3s agent
       become: false
       ansible.builtin.shell:
-        cmd: curl -sfL https://get.k3s.io | K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -
+        cmd: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip {{ansible_eth1['ipv4']['address']}}\" K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -"
       when: services['k3s-agent.service'] is not defined
 
     - name: Restart k3s-agent
