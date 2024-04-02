@@ -5,19 +5,6 @@
   vars:
 
   tasks:
-    # - name: Check if kubelet file exists
-    #   ansible.builtin.stat:
-    #     path: "/etc/default/kubelet"
-    #   register: kubelet_file
-    #
-    # - name: Create kubelet custom file
-    #   ansible.builtin.copy:
-    #     dest: "/etc/default/kubelet"
-    #     content: |
-    #       KUBELET_EXTRA_ARGS=--node-ip={{ansible_eth1['ipv4']['address']}}
-    #   when: 
-    #     - kubelet_file.stat.exists == False
-
     - name: Gather services facts
       ansible.builtin.service_facts:
 
