@@ -12,13 +12,13 @@
 
     - name: Install k3s
       ansible.builtin.debug:
-        msg: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--tls-san {{master_node_ip}} --node-ip {{master_node_ip}}\" K3S_KUBECONFIG_MODE=644 sh -"
+        msg: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip {{master_node_ip}}\" K3S_KUBECONFIG_MODE=644 sh -"
       become: false
       when: services['k3s.service'] is not defined
 
     - name: Install k3s
       ansible.builtin.shell:
-        cmd: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--tls-san {{master_node_ip}} --node-ip {{master_node_ip}}\" K3S_KUBECONFIG_MODE=644 sh -"
+        cmd: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip {{master_node_ip}}\" K3S_KUBECONFIG_MODE=644 sh -"
       become: false
       when: services['k3s.service'] is not defined
 
