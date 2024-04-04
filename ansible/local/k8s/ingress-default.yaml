@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: default-frontend
+  namespace: default
+
+spec:
+  defaultBackend:
+    service:
+      name: app3-service
+      port:
+        number: 80

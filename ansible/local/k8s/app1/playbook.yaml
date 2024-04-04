@@ -1,0 +1,34 @@
+- name: Deploy app
+  hosts: localhost
+  gather_facts: true
+  become: false
+  environment:
+    K8S_AUTH_KUBECONFIG: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
+
+  tasks:
+    - name: Slurp app1.html
+      ansible.builtin.slurp:
+        src: "index.html"
+      register: app1
+
+    - name: Create the configmap for app1.html from slurp
+      kubernetes.core.k8s:
+        state: present
+        namespace: default
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: cm-app1
+          data:
+            index.html: "{{ app1.content | b64decode }}"
+
+    - name: Create a ClusterIP for nginx app
+      kubernetes.core.k8s:
+        state: present
+        src: service.yaml
+
+    - name: Create a Deployment for nginx app
+      kubernetes.core.k8s:
+        state: present
+        src: deployment.yaml

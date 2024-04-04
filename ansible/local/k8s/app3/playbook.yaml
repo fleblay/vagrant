@@ -6,12 +6,12 @@
     K8S_AUTH_KUBECONFIG: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
 
   tasks:
-    - name: Slurp app1.html
+    - name: Slurp app3.html
       ansible.builtin.slurp:
-        src: "k8s/app1/index.html"
-      register: app1
+        src: "index.html"
+      register: app3
 
-    - name: Create the configmap for app1.html from slurp
+    - name: Create the configmap for app3.html from slurp
       kubernetes.core.k8s:
         state: present
         namespace: default
@@ -19,21 +19,16 @@
           apiVersion: v1
           kind: ConfigMap
           metadata:
-            name: cm-app-1
+            name: cm-app3
           data:
-            index.html: "{{ app1.content | b64decode }}"
+            index.html: "{{ app3.content | b64decode }}"
 
     - name: Create a ClusterIP for nginx app
       kubernetes.core.k8s:
         state: present
-        src: k8s/app1/service.yaml
+        src: service.yaml
 
     - name: Create a Deployment for nginx app
       kubernetes.core.k8s:
         state: present
-        src: k8s/app1/deployment.yaml
-
-    - name: Create a Ingress for nginx app
-      kubernetes.core.k8s:
-        state: present
-        src: k8s/ingress.yaml
+        src: deployment.yaml

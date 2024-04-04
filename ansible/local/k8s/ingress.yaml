@@ -13,6 +13,16 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: myapp-service
+                name: app1-service
+                port:
+                  number: 80
+    - host: "www.app2.com"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: app2-service
                 port:
                   number: 80

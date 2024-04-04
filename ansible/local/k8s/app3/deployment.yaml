@@ -1,29 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app1-deployment
+  name: app3-deployment
   namespace: default
   labels:
     app: nginx-app
 spec:
   selector:
     matchLabels:
-      app: app1
+      app: app3
   replicas: 1
   template:
     metadata:
       name: nginx
       labels:
-        app: app1
+        app: app3
     spec:
       containers:
         - name: nginx
           image: nginx
           volumeMounts:
-            - name: vol-app1
+            - name: vol-app3
               mountPath: "/usr/share/nginx/html"
               readOnly: true
       volumes:
-        - name: vol-app1
+        - name: vol-app3
           configMap:
-            name: cm-app1
+            name: cm-app3

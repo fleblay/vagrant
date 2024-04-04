@@ -73,12 +73,17 @@ Vagrant.configure('2') do |config|
     f.write "#{worker[:ip]}\n"
   end
 
-  config.push.define 'local-exec' do |push|
+  config.push.define 'k3s', strategy: 'local-exec' do |push|
     push.inline = <<-SCRIPT
     ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ansible/inventory.ini ansible/local/known_hosts.yaml
     ansible-playbook -i ansible/inventory.ini ansible/master/playbook.yaml
     ansible-playbook -i ansible/inventory.ini ansible/worker/playbook.yaml
-    ansible-playbook -i ansible/inventory.ini ansible/local/app-local-k8s.yaml
+    SCRIPT
+  end
+
+  config.push.define 'app', strategy: 'local-exec' do |push|
+    push.inline = <<-SCRIPT
+    ansible-playbook -i ansible/inventory.ini ansible/local/playbook.yaml
     SCRIPT
   end
 

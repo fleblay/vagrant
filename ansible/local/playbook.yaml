@@ -1,0 +1,5 @@
+- import_playbook: k8s/app1/playbook.yaml
+- import_playbook: k8s/app2/playbook.yaml
+- import_playbook: k8s/app3/playbook.yaml
+- import_playbook: k8s/ingress-playbook.yaml
+

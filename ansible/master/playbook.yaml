@@ -12,13 +12,15 @@
 
     - name: Install k3s
       ansible.builtin.debug:
-        msg: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip {{master_node_ip}}\" K3S_KUBECONFIG_MODE=644 sh -"
+        #msg: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip={{master_node_ip}}\" K3S_KUBECONFIG_MODE=644 sh -s -"
+        msg: "curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --bind-address={{master_node_ip}} --node-external-ip={{master_node_ip}} --flannel-iface=eth1 "
       become: false
       when: services['k3s.service'] is not defined
 
     - name: Install k3s
       ansible.builtin.shell:
-        cmd: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip {{master_node_ip}}\" K3S_KUBECONFIG_MODE=644 sh -"
+        #cmd: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip={{master_node_ip}}\" K3S_KUBECONFIG_MODE=644 sh -s -"
+        cmd: "curl -sfL https://get.k3s.io | sh -s - server --write-kubeconfig-mode 644 --bind-address={{master_node_ip}} --node-external-ip={{master_node_ip}} --flannel-iface=eth1 "
       become: false
       when: services['k3s.service'] is not defined
 
@@ -67,6 +69,8 @@
             namespace: kube-system
           spec:
             valuesContent: |-
+              # globalArguments:
+              #   - "--serversTransport.insecureSkipVerify=true"
               additionalArguments:
                 - "--api"
                 - "--api.dashboard=true"
@@ -74,12 +78,14 @@
               ports:
                 traefik:
                   expose: true
-              image:
-                name: traefik
-                tag: 2.9.10
-              serversTransport:
-                maxIdleConnsPerHost: -1
-              accessLog: {}
+              # serversTransport:
+              #   maxIdleConnsPerHost: -1
+              logs:
+                general:
+                  level: DEBUG
+                access:
+                  enabled: true
+                  # filePath: /var/log/traefik/access.log
       when: 
         - traefik_config_file.stat.exists == False
 

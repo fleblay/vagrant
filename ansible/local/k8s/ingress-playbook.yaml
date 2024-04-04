@@ -1,0 +1,17 @@
+- name: Deploy app
+  hosts: localhost
+  gather_facts: true
+  become: false
+  environment:
+    K8S_AUTH_KUBECONFIG: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
+
+  tasks:
+    - name: Create a default Ingress
+      kubernetes.core.k8s:
+        state: present
+        src: ingress-default.yaml
+
+    - name: Create a Ingress for nginx app
+      kubernetes.core.k8s:
+        state: present
+        src: ingress.yaml
