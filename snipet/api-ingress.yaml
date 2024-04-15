@@ -1,0 +1,28 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-argo-middleware
+  namespace: argocd
+spec:
+  stripPrefix:
+    prefixes:
+      - /argo
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argo-ingress
+  namespace: argocd
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: argocd-strip-argo-middleware@kubernetescrd
+spec:
+  rules:
+    - http:
+        paths:
+          - path: "/argo"
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 443

@@ -19,13 +19,12 @@
 
     - name: Debug print of cmd
       ansible.builtin.debug:
-        # msg: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip={{ansible_eth1['ipv4']['address']}}\" K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -s -"
         msg: "curl -sfL https://get.k3s.io | K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -s - --flannel-iface=eth1"
+      tags: [ 'never', 'debug' ]
 
     - name: Install k3s agent
       become: false
       ansible.builtin.shell:
-        # cmd: "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"--node-ip={{ansible_eth1['ipv4']['address']}}\" K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -s -"
         cmd: "curl -sfL https://get.k3s.io | K3S_URL=https://{{master_node_ip}}:6443 K3S_TOKEN={{ node_token.content | b64decode | trim }} sh -s - --flannel-iface=eth1"
       when: services['k3s-agent.service'] is not defined
 

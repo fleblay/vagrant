@@ -1,0 +1,44 @@
+- name: Deploy app
+  hosts: localhost
+  gather_facts: true
+  become: false
+  environment:
+    K8S_AUTH_KUBECONFIG: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
+
+  tasks:
+    - name: Update and deploy custom ArgoCD Chart
+      kubernetes.core.helm:
+        name: argo-cd
+        dependency_update: true #run helm dep update CHART before operation
+        chart_ref: charts/argo-cd
+        release_namespace: argo-cd
+        create_namespace: true
+        values_files:
+          - charts/argo-cd/values.yaml
+
+    - name: Patch ArgoCD ClusterIP into a NodePort
+      kubernetes.core.k8s:
+        namespace: argo-cd
+        state: patched
+        kind: Service
+        name: argo-cd-argocd-server
+        definition:
+          spec:
+            type: NodePort
+            ports:
+              - port: 80
+                nodePort: 30001
+
+    - name: Retrieve Secret with admin pass
+      kubernetes.core.k8s_info:
+        kind: Secret
+        namespace: argo-cd
+        name: argocd-initial-admin-secret
+        wait: yes
+        wait_sleep: 2
+        wait_timeout: 600
+      register: argo_admin_pass
+
+    - name: Print admin pass
+      ansible.builtin.debug:
+        msg: "{{ argo_admin_pass.resources[0].data.password | b64decode}}"

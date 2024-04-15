@@ -1,0 +1,5 @@
+- import_playbook: app1/playbook.yaml
+- import_playbook: app2/playbook.yaml
+- import_playbook: app3/playbook.yaml
+- import_playbook: ingress-playbook.yaml
+

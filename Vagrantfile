@@ -4,15 +4,9 @@
 # script_apt_upgrade = <<-'SCRIPT'
 #     apt-get update && apt-get upgrade -y
 # SCRIPT
-# script_apt_curl = <<-'SCRIPT'
-#     apt-get install -y curl
-# SCRIPT
-# script_k3s_master = <<-'SCRIPT'
-#       curl -sfL https://get.k3s.io | sh -
-# SCRIPT
 #
-# scripts_master = [script_apt_upgrade, script_apt_curl, script_k3s_master]
-# scripts_worker = [script_apt_upgrade, script_apt_curl]
+# scripts_master = [script_apt_upgrade]
+# scripts_worker = [script_apt_upgrade]
 scripts_master = []
 scripts_worker = []
 
@@ -20,7 +14,8 @@ port_map_master = [
   # { host_port: 6443, guest_port: 6443 } # (useless with kubeconfig)
 ]
 port_map_worker = [
-  { host_port: 9000, guest_port: 9000 } # traefik dashboard
+  { host_port: 9000, guest_port: 9000 }, # traefik dashboard
+  { host_port: 8080, guest_port: 30001 } # traefik dashboard
 ]
 
 master = { cpu: 2, memory: 1024, name: 'fleblayS', ip: '192.168.42.110', port_map: port_map_master,
@@ -30,11 +25,9 @@ worker = { cpu: 2, memory: 1024, name: 'fleblaySW', ip: '192.168.42.111', port_m
 
 machines = [master, worker]
 
-# TODO: remove key generation
-# TODO: ansible from localhost with kubeconfig file
-
 Vagrant.configure('2') do |config|
   machines.each do |machine|
+    config.ssh.insert_key = false
     config.vm.box = 'debian/bookworm64'
     config.vm.define machine[:name].to_s do |server|
       server.vm.provider 'virtualbox' do |vb|
@@ -63,7 +56,7 @@ Vagrant.configure('2') do |config|
   # create ansible inventory file
   ansible_inventory_dir = 'ansible/'
   Dir.mkdir(ansible_inventory_dir) unless Dir.exist?(ansible_inventory_dir)
-  File.open("#{ansible_inventory_dir}/inventory.ini", 'w') do |f|
+  File.open("#{ansible_inventory_dir}/inventory.yaml", 'w') do |f|
     f.write "[all:vars]\n"
     f.write "master_node_ip=#{master[:ip]}\n"
     f.write "ansible_user=vagrant\n"
@@ -75,15 +68,21 @@ Vagrant.configure('2') do |config|
 
   config.push.define 'k3s', strategy: 'local-exec' do |push|
     push.inline = <<-SCRIPT
-    ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ansible/inventory.ini ansible/local/known_hosts.yaml
-    ansible-playbook -i ansible/inventory.ini ansible/master/playbook.yaml
-    ansible-playbook -i ansible/inventory.ini ansible/worker/playbook.yaml
+    ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ansible/inventory.yaml ansible/local/known_hosts.yaml
+    ansible-playbook -i ansible/inventory.yaml ansible/master/playbook.yaml
+    ansible-playbook -i ansible/inventory.yaml ansible/worker/playbook.yaml
     SCRIPT
   end
 
   config.push.define 'app', strategy: 'local-exec' do |push|
     push.inline = <<-SCRIPT
-    ansible-playbook -i ansible/inventory.ini ansible/local/playbook.yaml
+    ansible-playbook -i ansible/inventory.yaml ansible/local/k8s/playbook.yaml
+    SCRIPT
+  end
+
+  config.push.define 'argo', strategy: 'local-exec' do |push|
+    push.inline = <<-SCRIPT
+    ansible-playbook -i ansible/inventory.yaml ansible/local/argo/playbook.yaml
     SCRIPT
   end
 

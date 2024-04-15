@@ -1,0 +1,11 @@
+#available keys : https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
+argo-cd: #matching name of dependency
+  dex: #external auth providers
+    enabled: false
+  notifications: #notif about application state
+    enabled: false
+  applicationSet: #automated generation of argoCD Applications
+    enabled: false
+  server:
+    extraArgs:
+      - --insecure #server UI over http

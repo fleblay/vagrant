@@ -20,6 +20,7 @@
         state: absent
       with_items: "{{ ssh_scan_keys.results }}"
       when: ssh_scan_keys.results | length > 0
+      no_log: true
 
     - name: Add public key of hosts to know_hosts file
       ansible.builtin.known_hosts:
@@ -29,6 +30,7 @@
         state: present
       with_items: "{{ ssh_scan_keys.results }}"
       when: ssh_scan_keys.results | length > 0
+      no_log: true
 
     - name: Debug
       ansible.builtin.debug:
