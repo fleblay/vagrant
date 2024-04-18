@@ -42,3 +42,20 @@
     - name: Print admin pass
       ansible.builtin.debug:
         msg: "{{ argo_admin_pass.resources[0].data.password | b64decode}}"
+
+    - name: Save admin pass to file
+      ansible.builtin.copy:
+        content: "{{ argo_admin_pass.resources[0].data.password | b64decode}}"
+        dest: "{{ lookup('env', 'PWD') }}/admin_pass.txt"
+
+    - name: Create dev namespace
+      kubernetes.core.k8s:
+        name: dev
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Create argoCD app with defaults
+      kubernetes.core.k8s:
+        state: present
+        src: application.yaml

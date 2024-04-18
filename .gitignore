@@ -1,3 +1,4 @@
 .vagrant/
 ansible/inventory.*
 **/*.tgz
+admin_pass.txt
