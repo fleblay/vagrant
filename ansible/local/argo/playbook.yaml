@@ -48,14 +48,42 @@
         content: "{{ argo_admin_pass.resources[0].data.password | b64decode}}"
         dest: "{{ lookup('env', 'PWD') }}/admin_pass.txt"
 
-    - name: Create dev namespace
-      kubernetes.core.k8s:
-        name: dev
-        api_version: v1
-        kind: Namespace
-        state: present
+    #TODO: Separate me in a different file for the root-app
+    # - name: Create dev namespace
+    #   kubernetes.core.k8s:
+    #     name: dev
+    #     api_version: v1
+    #     kind: Namespace
+    #     state: present
+    #
+    - name: Slurp SSH key into register
+      ansible.builtin.slurp:
+        src: "{{ lookup('env', 'PWD') }}/ssh/id_ed"
+      register: ssh_private_key
 
-    - name: Create argoCD app with defaults
+    - name: Create a secret for argoCD with ssh key
       kubernetes.core.k8s:
         state: present
-        src: application.yaml
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: private-repo
+            namespace: argo-cd
+            labels:
+              argocd.argoproj.io/secret-type: repo-creds
+          stringData:
+            type: git
+            url: git@github.com:fleblay
+            sshPrivateKey: |
+              -----BEGIN OPENSSH PRIVATE KEY-----
+              {{ ssh_private_key.content | b64decode | trim }}
+              -----END OPENSSH PRIVATE KEY-----
+
+    #TODO: CREATE ROOT APP
+    - name: Deploy root-app Chart
+      kubernetes.core.helm:
+        name: root-app
+        chart_ref: charts/root-app
+        release_namespace: dev
+        create_namespace: true
