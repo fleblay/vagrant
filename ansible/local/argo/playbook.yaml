@@ -1,4 +1,4 @@
-- name: Deploy app
+- name: Deploy ArgoCD
   hosts: localhost
   gather_facts: true
   become: false
@@ -6,6 +6,13 @@
     K8S_AUTH_KUBECONFIG: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
 
   tasks:
+    - name: Create argo-cd namespace
+      kubernetes.core.k8s:
+        name: argo-cd
+        api_version: v1
+        kind: Namespace
+        state: present
+
     - name: Update and deploy custom ArgoCD Chart
       kubernetes.core.helm:
         name: argo-cd
@@ -48,7 +55,6 @@
         content: "{{ argo_admin_pass.resources[0].data.password | b64decode}}"
         dest: "{{ lookup('env', 'PWD') }}/admin_pass.txt"
 
-    # TODO: Separate me in a different file for the root-app
     - name: Create dev namespace
       kubernetes.core.k8s:
         name: dev
@@ -76,11 +82,8 @@
             type: git
             url: git@github.com:fleblay
             sshPrivateKey: |
-              -----BEGIN OPENSSH PRIVATE KEY-----
-              {{ ssh_private_key.content | b64decode | trim }}
-              -----END OPENSSH PRIVATE KEY-----
+              {{ ssh_private_key.content | b64decode }}
 
-    #TODO: CREATE ROOT APP
     - name: Deploy root-app Chart
       kubernetes.core.helm:
         name: root-app

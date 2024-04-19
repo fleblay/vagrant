@@ -1,14 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: guestbook
+  name: 42app
   namespace: argo-cd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    repoURL: https://github.com/fleblay/42app.git
+    path: app
     targetRevision: HEAD
-    path: guestbook
   destination:
     server: https://kubernetes.default.svc
     namespace: dev
+  syncPolicy:
+    automated:
+      selfHeal: true
