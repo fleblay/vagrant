@@ -48,14 +48,14 @@
         content: "{{ argo_admin_pass.resources[0].data.password | b64decode}}"
         dest: "{{ lookup('env', 'PWD') }}/admin_pass.txt"
 
-    #TODO: Separate me in a different file for the root-app
-    # - name: Create dev namespace
-    #   kubernetes.core.k8s:
-    #     name: dev
-    #     api_version: v1
-    #     kind: Namespace
-    #     state: present
-    #
+    # TODO: Separate me in a different file for the root-app
+    - name: Create dev namespace
+      kubernetes.core.k8s:
+        name: dev
+        api_version: v1
+        kind: Namespace
+        state: present
+
     - name: Slurp SSH key into register
       ansible.builtin.slurp:
         src: "{{ lookup('env', 'PWD') }}/ssh/id_ed"
@@ -85,5 +85,4 @@
       kubernetes.core.helm:
         name: root-app
         chart_ref: charts/root-app
-        release_namespace: dev
-        create_namespace: true
+        release_namespace: argo-cd
