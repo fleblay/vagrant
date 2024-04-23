@@ -92,6 +92,12 @@ Vagrant.configure('2') do |config|
     SCRIPT
   end
 
+  config.push.define 'gitlab', strategy: 'local-exec' do |push|
+    push.inline = <<-SCRIPT
+    ansible-playbook -i ansible/inventory.yaml ansible/local/gitlab/playbook.yaml
+    SCRIPT
+  end
+
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.

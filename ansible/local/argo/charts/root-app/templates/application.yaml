@@ -16,4 +16,5 @@ spec:
     namespace: dev
   syncPolicy:
     automated:
+      prune: true
       selfHeal: true

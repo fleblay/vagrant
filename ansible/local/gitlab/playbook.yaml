@@ -1,0 +1,27 @@
+- name: Deploy GitLab
+  hosts: localhost
+  gather_facts: true
+  become: false
+  environment:
+    K8S_AUTH_KUBECONFIG: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
+
+  #TODO: Use a custom helm chart with gitlab chart as dependecy
+  tasks:
+    # - name: Update and deploy GitLab Chart
+    #   kubernetes.core.helm:
+    #     name: gitlab
+    #     dependency_update: true
+    #     chart_ref: "https://charts.gitlab.io"
+    #     release_namespace: gitlab
+    #     create_namespace: true
+    #     values:
+    #       timeout: 600s
+    #       global:
+    #         hosts:
+    #           domain: example.com
+    #           externalIP: 10.10.10.10
+    #       certmanager-issuer:
+    #         email: me@example.com
+    #       postgresql:
+    #         image:
+    #           tag: 13.6.0
