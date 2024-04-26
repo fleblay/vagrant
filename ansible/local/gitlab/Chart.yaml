@@ -1,0 +1,7 @@
+apiVersion: v2
+name: gitlab
+version: 1.0.0
+dependencies:
+  - name: gitlab
+    version: 7.11.0
+    repository: https://charts.gitlab.io

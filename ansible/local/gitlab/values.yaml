@@ -1,0 +1,10 @@
+#available keys : https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml?ref_type=heads
+gitlab:
+  global:
+    ingress:
+      enabled: false
+      configureCertmanager: false
+  nginx-ingress:
+    enabled: false
+  certmanager:
+    install: false

@@ -5,23 +5,40 @@
   environment:
     K8S_AUTH_KUBECONFIG: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
 
-  #TODO: Use a custom helm chart with gitlab chart as dependecy
+  #Helm dependency update <folder> in folder containing Chart.yaml to generate Chart.lock
   tasks:
-    # - name: Update and deploy GitLab Chart
-    #   kubernetes.core.helm:
-    #     name: gitlab
-    #     dependency_update: true
-    #     chart_ref: "https://charts.gitlab.io"
-    #     release_namespace: gitlab
-    #     create_namespace: true
-    #     values:
-    #       timeout: 600s
-    #       global:
-    #         hosts:
-    #           domain: example.com
-    #           externalIP: 10.10.10.10
-    #       certmanager-issuer:
-    #         email: me@example.com
-    #       postgresql:
-    #         image:
-    #           tag: 13.6.0
+    - name: update and deploy gitlab chart
+      kubernetes.core.helm:
+        name: gitlab
+        dependency_update: true
+        chart_ref: .
+        release_namespace: gitlab
+        create_namespace: true
+        values_files:
+          - ./values.yaml
+        timeout: 600s
+        state: present
+
+    - name: Create an Ingress
+      kubernetes.core.k8s:
+        state: present
+        src: ingress.yaml
+
+    - name: Retrieve Secret with admin pass
+      kubernetes.core.k8s_info:
+        kind: Secret
+        namespace: gitlab
+        name: gitlab-gitlab-initial-root-password
+        wait: yes
+        wait_sleep: 2
+        wait_timeout: 600
+      register: gitlab_admin_pass
+
+    - name: Print admin pass
+      ansible.builtin.debug:
+        msg: "{{ gitlab_admin_pass.resources[0].data.password | b64decode}}"
+
+    - name: Save admin pass to file
+      ansible.builtin.copy:
+        content: "{{ gitlab_admin_pass.resources[0].data.password | b64decode}}"
+        dest: "{{ lookup('env', 'PWD') }}/admin_pass_gitlab.txt"

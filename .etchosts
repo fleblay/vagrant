@@ -1,0 +1,5 @@
+192.168.42.111 www.app1.com
+192.168.42.111 www.app2.com
+192.168.42.111 www.app3.com
+192.168.42.111 gitlab.example.com
+192.168.42.111 registry.example.com
