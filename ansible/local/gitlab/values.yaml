@@ -8,3 +8,20 @@ gitlab:
     enabled: false
   certmanager:
     install: false
+  gitlab:
+    webservice:
+      minReplicas: 1
+      maxReplicas: 1
+    gitlab-shell:
+      minReplicas: 1
+      maxReplicas: 1
+    kas:
+      minReplicas: 1
+      maxReplicas: 1
+    sidekiq:
+      minReplicas: 1
+      maxReplicas: 1
+  registry:
+    hpa:
+      minReplicas: 1
+      maxReplicas: 1

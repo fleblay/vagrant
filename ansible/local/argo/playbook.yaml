@@ -53,7 +53,7 @@
     - name: Save admin pass to file
       ansible.builtin.copy:
         content: "{{ argo_admin_pass.resources[0].data.password | b64decode}}"
-        dest: "{{ lookup('env', 'PWD') }}/admin_pass.txt"
+        dest: "{{ lookup('env', 'PWD') }}/admin_pass_argo.txt"
 
     - name: Create dev namespace
       kubernetes.core.k8s:
