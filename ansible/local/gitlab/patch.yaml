@@ -1,0 +1,30 @@
+spec:
+  template:
+    spec:
+      hostAliases:
+        - ip: "192.168.42.111"
+          hostnames:
+            - "gitlab.example.com"
+      containers:
+        - name: gitlab-gitlab-runner
+          env:
+            - name: CI_SERVER_URL
+              value: http://gitlab.example.com
+          livenessProbe:
+            exec:
+              command:
+                # - /bin/bash
+                # - /configmaps/check-live
+                - /bin/ls
+          readinessProbe:
+            exec:
+              command:
+                # - /usr/bin/pgrep
+                # - gitlab.*runner
+                - /bin/ls
+                #todo : Fixme breaks non root policy
+          securityContext:
+            privileged: true
+            allowPrivilegeEscalation: true
+            runAsUser: 0
+            runAsNonRoot: false
