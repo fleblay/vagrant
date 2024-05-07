@@ -4,3 +4,4 @@ ansible/inventory.*
 admin_pass_argo.txt
 admin_pass_gitlab.txt
 ssh/*
+test_repo

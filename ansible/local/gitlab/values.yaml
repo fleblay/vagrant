@@ -1,12 +1,28 @@
 #available keys : https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml?ref_type=heads
+# Gitlab default
+#
+#ssh-keygen -R "[gitlab.example.com]:32022"
+#With test repo in root namespace
+#Add ssh-key to user
+#git clone ssh://git@gitlab.example.com:32022/root/test
+#Add CI template and push
+
 gitlab:
   global:
-    ingress:
-      enabled: false
-      configureCertmanager: false
+    hosts:
+      domain: example.com
+      externalIP: 192.168.42.111
+    shell:
+      port: 32022 #UI git clone will use this
+    rails:
+      bootsnap: #caches ruby modules locations and bytecode generation
+        enabled: false
   nginx-ingress:
-    enabled: false
-  certmanager:
+    enable: false
+  certmanager-issuer:
+    email: me@example.com
+  postgresql.image.tag: 13.6.0
+  prometheus:
     install: false
   gitlab:
     webservice:
@@ -15,6 +31,9 @@ gitlab:
     gitlab-shell:
       minReplicas: 1
       maxReplicas: 1
+      service:
+        type: NodePort
+        nodePort: 32022
     kas:
       minReplicas: 1
       maxReplicas: 1
@@ -25,3 +44,97 @@ gitlab:
     hpa:
       minReplicas: 1
       maxReplicas: 1
+  gitlab-runner:
+    gitlabUrl: http://gitlab.example.com/
+    log_level: debug
+    runners:
+      privileged: true
+      config: | #in order for container to be able to fetch repo -> host_aliases
+        [[runners]]
+          executor = "kubernetes"
+          [runners.kubernetes]
+          image = "ubuntu:22.04"
+            [[runners.kubernetes.host_aliases]]
+              ip = "192.168.42.111"
+              hostnames = ["gitlab.example.com"]
+          [runners.cache]
+            Type = "s3"
+            Path = "gitlab-runner"
+            Shared = true
+            [runners.cache.s3]
+              ServerAddress = {{ include "gitlab-runner.cache-tpl.s3ServerAddress" . }}
+              BucketName = "runner-cache"
+              BucketLocation = "us-east-1"
+              Insecure = false
+
+# gitlab:
+#   global:
+#     ingress:
+#       enable: false
+#       configureCertmanager: false
+#   nginx-ingress:
+#     enabled: false
+#   certmanager:
+#     install: false
+#   prometheus:
+#     install: false
+#   gitlab-runner:
+#     install: false
+#   shell:
+#     port: 32022 #UI git clone will use this
+#   gitlab:
+#     webservice:
+#       minReplicas: 1
+#       maxReplicas: 1
+#     gitlab-shell:
+#       minReplicas: 1
+#       maxReplicas: 1
+#       service:
+#         type: NodePort
+#         nodePort: 32022
+#     kas:
+#       minReplicas: 1
+#       maxReplicas: 1
+#     sidekiq:
+#       minReplicas: 1
+#       maxReplicas: 1
+#   registry:
+#     hpa:
+#       minReplicas: 1
+#       maxReplicas: 1
+# # Perso attempt
+# gitlab:
+#   global:
+#     ingress:
+#       enabled: false
+#       configureCertmanager: false
+#   nginx-ingress:
+#     enabled: false
+#   certmanager:
+#     install: false
+#   gitlab:
+#     webservice:
+#       minReplicas: 1
+#       maxReplicas: 1
+#     gitlab-shell:
+#       minReplicas: 1
+#       maxReplicas: 1
+#     kas:
+#       minReplicas: 1
+#       maxReplicas: 1
+#     sidekiq:
+#       minReplicas: 1
+#       maxReplicas: 1
+#   registry:
+#     hpa:
+#       minReplicas: 1
+#       maxReplicas: 1
+## Gitlab default
+# gitlab:
+#   global:
+#     hosts:
+#       domain: example.com
+#       externalIP: 192.168.42.111
+#   certmanager-issuer:
+#     email: me@example.com
+#   postgresql.image.tag: 13.6.0

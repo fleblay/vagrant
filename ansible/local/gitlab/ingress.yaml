@@ -6,7 +6,7 @@ metadata:
 
 spec:
   rules:
-    - host: "*.example.com"
+    - host: "gitlab.example.com"
       http:
         paths:
           - path: "/"

@@ -31,6 +31,7 @@ Vagrant.configure('2') do |config|
     config.ssh.insert_key = false
     config.vm.box = 'debian/bookworm64'
     config.vm.define machine[:name].to_s do |server|
+      server.vm.disk :disk, size: "40GB", primary: true
       server.vm.provider 'virtualbox' do |vb|
         vb.cpus = machine[:cpu]
         vb.memory = machine[:memory]

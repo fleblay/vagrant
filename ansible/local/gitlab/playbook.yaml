@@ -42,3 +42,12 @@
       ansible.builtin.copy:
         content: "{{ gitlab_admin_pass.resources[0].data.password | b64decode}}"
         dest: "{{ lookup('env', 'PWD') }}/admin_pass_gitlab.txt"
+
+    - name: Patch runner deployment to add custom host entries
+      kubernetes.core.k8s:
+        state: patched
+        namespace: gitlab
+        merge_type: ["strategic-merge"]
+        kind: Deployment
+        name: gitlab-gitlab-runner
+        src: ./patch.yaml
