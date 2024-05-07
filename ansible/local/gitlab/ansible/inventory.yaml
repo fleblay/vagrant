@@ -1,7 +1,0 @@
-[all:vars]
-master_node_ip=192.168.42.110
-ansible_user=vagrant
-[master]
-192.168.42.110
-[worker]
-192.168.42.111

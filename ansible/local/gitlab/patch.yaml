@@ -1,7 +1,7 @@
 spec:
   template:
     spec:
-      hostAliases:
+      hostAliases: #For registration of the runner
         - ip: "192.168.42.111"
           hostnames:
             - "gitlab.example.com"
