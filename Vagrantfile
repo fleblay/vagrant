@@ -16,11 +16,12 @@ port_map_master = [
 port_map_worker = [
   { host_port: 9000, guest_port: 9000 }, # traefik dashboard
   { host_port: 8080, guest_port: 30001 } # argocd dashboard
+  { host_port: 8888, guest_port: 30008 } # 42app
 ]
 
-master = { cpu: 3, memory: 6144, name: 'fleblayS', ip: '192.168.42.110', port_map: port_map_master,
+master = { cpu: 2, memory: 4096, name: 'fleblayS', ip: '192.168.42.110', port_map: port_map_master,
            scripts: scripts_master }
-worker = { cpu: 3, memory: 6144, name: 'fleblaySW', ip: '192.168.42.111', port_map: port_map_worker,
+worker = { cpu: 2, memory: 4096, name: 'fleblaySW', ip: '192.168.42.111', port_map: port_map_worker,
            scripts: scripts_worker }
 
 machines = [master, worker]

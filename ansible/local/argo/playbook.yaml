@@ -46,11 +46,11 @@
         wait_timeout: 600
       register: argo_admin_pass
 
-    - name: Print admin pass
+    - name: Print admin pass (username:admin)
       ansible.builtin.debug:
         msg: "{{ argo_admin_pass.resources[0].data.password | b64decode}}"
 
-    - name: Save admin pass to file
+    - name: Save admin pass to file (username:admin)
       ansible.builtin.copy:
         content: "{{ argo_admin_pass.resources[0].data.password | b64decode}}"
         dest: "{{ lookup('env', 'PWD') }}/admin_pass_argo.txt"

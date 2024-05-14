@@ -1,6 +1,6 @@
 .PHONY: all
 all:
-	vagrant up && vagrant push k3s && vagrant push app && vagrant push argo
+	vagrant up && vagrant push k3s && vagrant push app && vagrant push argo && vagrant push gitlab
 
 .PHONY: destroy
 destroy:
