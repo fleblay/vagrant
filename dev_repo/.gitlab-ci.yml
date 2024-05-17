@@ -34,6 +34,9 @@ build:
     - echo $CI_CD_DOCKER_PASSWORD | docker login -u $CI_CD_DOCKER_USER --password-stdin
     - docker build -t $APP_NAME:$TAG .
     - docker push $IMAGE_NAME_WITH_TAG
+  rules:
+    - if: $CI_COMMIT_REF_NAME != main
+      when: never
 
 deploy:
   stage: deploy
@@ -48,3 +51,6 @@ deploy:
     - git add app/deployment
     - git commit -m "CI deploy $TAG"
     - git push -o ci.skip
+  rules:
+    - if: $CI_COMMIT_REF_NAME != main
+      when: never
