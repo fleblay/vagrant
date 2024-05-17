@@ -9,11 +9,6 @@ variables:
   #TODO: Create CI_CD_DOCKER_PASSWORD in gitlab env variables
   #TODO Genreate github access token via https://github.com/settings/tokens/new with repo rights and create CI_GITHUB_TOKEN in gitlab env variables
 
-default:
-  before_script:
-    - apt-get update
-    - apt-get install -y git yq
-
 stages:
   - test
   - build
@@ -26,24 +21,20 @@ test:
 
 build:
   stage: build
-  image: debian:bookworm-slim
-  before_script:
-    - apt-get update
-    - apt-get install -y git
+  image: quay.io/buildah/stable
   script:
-    - echo $CI_CD_DOCKER_PASSWORD | docker login -u $CI_CD_DOCKER_USER --password-stdin
-    - docker build -t $APP_NAME:$TAG .
-    - docker push $IMAGE_NAME_WITH_TAG
+    - echo $CI_CD_DOCKER_PASSWORD | buildah login -u $CI_CD_DOCKER_USER --password-stdin
+    - buildah build -t $IMAGE_NAME_WITH_TAG
+    - buildah push $IMAGE_NAME_WITH_TAG docker://$IMAGE_NAME_WITH_TAG
   rules:
-    - if: $CI_COMMIT_REF_NAME != main
-      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - when: manual
+  after_script:
+    - buildah logout
 
 deploy:
   stage: deploy
-  image: debian:bookworm-slim
-  before_script:
-    - apt-get update
-    - apt-get install -y yq
+  image: mikefarah/yq
   script:
     - git clone https://$CI_GITHUB_TOKEN@github.com/fleblay/42app.git
     - cd 42app
@@ -52,5 +43,5 @@ deploy:
     - git commit -m "CI deploy $TAG"
     - git push -o ci.skip
   rules:
-    - if: $CI_COMMIT_REF_NAME != main
-      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - when: manual
